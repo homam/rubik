@@ -5,16 +5,23 @@
     <title></title>
     <script type="text/javascript" src="Three.js"></script>
 	<script src="_.js"></script>
+	<script src="jquery-1.7.js"></script>
 	<script src="EventTarget.js"></script>
 </head>
 <body>
     <script>
+
+		THREE.Vector3.prototype.toString = function() {return "(" + this.x + "," + this.y + "," + this.z + ")";}
+		THREE.Vector3.prototype.equals = function(v) { return this.x === v.x && this.y === v.y && this.z === v.z; };
+		THREE.Color.prototype.toString = function() { return "Color(" + this.r + ", " + this.g  + ", " + this.b + ")" };
+	
 
         requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
 		var tickerEvent = new EventTarget();
 		var onTicks = [];
 
 		var cubeSize = 100;
+		var cameraDefaultPosition = new THREE.Vector3(500,500,400);
         var camera, scene, renderer, cubes = [], sphere;
 
         init();
@@ -41,23 +48,68 @@
             // camera
             camera = (function () {
                 var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-                camera.position.z = -500;
-                camera.position.y = 620;
-				camera.position.x = 400;
+                camera.position = cameraDefaultPosition.clone();
                 return camera;
             })();
             scene.add(camera);
 
+			var V = function(x,y,z) {return new THREE.Vector3(x,y,z);};
+			 axesColors = {	'x': {color: 0xff0000, v:V(1,0,0)} , '-x': {color: 0xffff00, v:V(-1,0,0)},
+			 					'y': {color: 0x0000ff, v:V(0,1,0)} , '-y': {color: 0x00ffff, v:V(0,-1,0)},
+			 					'z': {color: 0x00ff00, v:V(0,0,1)} , '-z': {color: 0xff00ff, v:V(0,0,-1)}
+			};
+			var materialsInfo = (function(){
+				var newMaterials = function() {
+					var materials = [];
+					_.each(axesColors, function(ax, axName) {
+						materials.push( new THREE.MeshBasicMaterial( { color: ax.color} ) );
+					});
+					return materials;
+				};
+				
+				return function() {
+					return {
+						materials: newMaterials(),
+						rotate: function(facesDirections) {
+	/*						
+							var index = 0
+							var _this = this;
+							_.each(axesColors, function(ax, axName) {
+								_this.materials[index].color = 
+									new THREE.Color(_.find(axesColors, 
+										function(a) { return a.v.equals(facesDirections[axName]); }).color);
+								index++;
+							});
+							return
+							/**/
+							console.log("newDirections:", facesDirections.toString());
+							this.materials[0].color = 
+								new THREE.Color(_.find(axesColors, function(a) { return a.v.equals(facesDirections['x']); }).color);
+							this.materials[1].color = 
+								new THREE.Color(_.find(axesColors, function(a) { return a.v.equals(facesDirections['-x']); }).color);
+							this.materials[2].color = 
+								new THREE.Color(_.find(axesColors, function(a) { return a.v.equals(facesDirections['y']); }).color);
+							this.materials[3].color = 
+								new THREE.Color(_.find(axesColors, function(a) { return a.v.equals(facesDirections['-y']); }).color);
+							this.materials[4].color = 
+								new THREE.Color(_.find(axesColors, function(a) { return a.v.equals(facesDirections['z']); }).color);
+							this.materials[5].color = 
+								new THREE.Color(_.find(axesColors, function(a) { return a.v.equals(facesDirections['-z']); }).color);
+
+							console.log(this.materials[0].color.toString())
+						}
+					};
+				};
+			})() ;
+
 			[-1, 0, 1].forEach(function(x){
 				[-1, 0, 1].forEach(function(y){
 					[-1, 0, 1].forEach(function(z){
-						var colors = [0xff0000, 0xffff00, 0x0000ff, 0x00ffff, 0x00ff00, 0xff00ff]
-						var materials = [];
-						for ( var i = 0; i < 6; i ++ ) {
-							materials.push( new THREE.MeshBasicMaterial( { color: colors[i]} ) );
-						}
-						
-						var cube = new THREE.Mesh(new THREE.CubeGeometry(cubeSize*.6, cubeSize*.6, cubeSize*.6, 1, 1, 1, materials),
+						if(!(x==0 && y==0 && z==0))return;
+						//if(cubes.length>0)return
+						var cubeMaterials = materialsInfo();
+						var cube = new THREE.Mesh(new THREE.CubeGeometry(cubeSize*.6, cubeSize*.6, cubeSize*.6, 1, 1, 1,
+							 cubeMaterials.materials),
 							new THREE.MeshFaceMaterial());
 						cube.position.set(x*cubeSize, y*cubeSize, z*cubeSize);
 			            cube.castShadow = true;
@@ -68,15 +120,54 @@
 						cube.rubik = {
 							original: {x:x, y:y, z:z},
 							current: {x:x, y:y, z:z},
+							axes: Object.defineProperty( {
+								'x': {name:'x', v: new THREE.Vector3(1,0,0)},
+								'y': {name:'y', v: new THREE.Vector3(0,1,0)},
+								'z': {name:'z', v: new THREE.Vector3(0,0,1)}
+							}, 'toString', {
+								value:function() {
+									return "axes: " + this.x.v.toString() + ", " + this.y.v.toString() + ", " + this.z.v.toString();
+								},
+								enumerable:false
+							}),
+							getFacesDirections: function(){
+								return {
+									'x': this.axes.x.v,
+									'y': this.axes.y.v,
+									'z': this.axes.z.v,
+									'-x': this.axes.x.v.clone().multiplyScalar(-1),
+									'-y': this.axes.y.v.clone().multiplyScalar(-1),
+									'-z': this.axes.z.v.clone().multiplyScalar(-1),
+									toString: function() {
+										var str = "";
+										var _this = this;
+										_.each(['x','-x','y','-y','z','-z'], function(axName) {
+											str+= axName + ":" + _this[axName].toString() + " ";
+										});
+										
+										return str;
+									}
+								};
+							}
+							,
 							_matrices: {
-								z: function(t) {
-									return new THREE.Matrix4(cos(t), sin(t),0,0,	-sin(t), cos(t), 0,0,	0,0,1,0,	0,0,0,1);
+								x: function(t){
+									return new THREE.Matrix4(	1,			0,			0,			0,	
+																0,			cos(t),		-sin(t),	0,	
+																0,			sin(t),		cos(t),		0,	
+																0,			0,			0,			1);
 								},
 								y: function(t){
-									return new THREE.Matrix4(cos(t), 0,-sin(t),0,	0,1,0,0,	sin(t),0,cos(t),0,	0,0,0,1);
+									return new THREE.Matrix4(	cos(t),		0,			sin(t),		0,	
+																0,			1,			0,			0,	
+																-sin(t),	0,			cos(t),		0,	
+																0,			0,			0,			1);
 								},
-								x: function(t){
-									return new THREE.Matrix4(1,0,0,0,	0,cos(t),sin(t),0,	0,-sin(t),cos(t),0,	0,0,0,1);
+								z: function(t) {
+									return new THREE.Matrix4(	cos(t), 	-sin(t),	0,			0,	
+																sin(t),		 cos(t),	0,			0,	
+																0,			 0,			1,			0,
+																0,			 0,			0,			1);
 								}
 							},
 							rotate: function(axis, dir, callback) {
@@ -85,12 +176,17 @@
 								var rotationPerTick = (Math.PI/2)/1000;
 								var originalRotation = 0;
 								var originalPosition = null;
+								var rotationAxis = _.filter(cube.rubik.axes,function(a){
+									return round( a.v[axis]) != 0;})[0].name;
+								rotationAxis = axis;
+								//cube.rotation = new THREE.Vector3(0,0,0);
 								var anim = function(ev) {
 									var time = ev.t;
 									if(!originalTime) { // first call to anim()
 										originalTime = time;
-										originalRotation = cube.rotation[axis];
+										originalRotation = cube.rotation[rotationAxis];
 										originalPosition = cube.position;
+										console.log("originalRotation", originalRotation, "around", rotationAxis)
 									}
 									var t = (time-originalTime)*rotationPerTick; // current rotation (for the current tick)
 									var end = false;
@@ -100,17 +196,31 @@
 									}
 									t*=dir; // adjust by direction
 									var original = cube.rubik.current;
-									var matrix = cube.rubik._matrices[axis](t);
+									var matrix = cube.rubik._matrices[rotationAxis](t);
 									var pos = matrix.multiplyVector3(new THREE.Vector3(original.x, original.y, original.z));
+									cube.rotation[rotationAxis] = originalRotation-t;
 									if(end){
+										//matrix = matrix.transpose();
 										cube.rubik.current = {x:round(pos.x), y:round(pos.y), z:round(pos.z)};
 										tickerEvent.removeListener("tick", anim);
+										_.each(cube.rubik.axes, function(a) {
+											a.v = matrix.multiplyVector3(a.v);
+											a.v.x = round(a.v.x);
+											a.v.y = round(a.v.y);
+											a.v.z = round(a.v.z);
+										});
+										console.log(cube.rubik.axes.toString(), " r axis: ", rotationAxis.toString(), 
+											cube.rubik.getFacesDirections());
+										cube.rotation = new THREE.Vector3(0,0,0);
+										cubeMaterials.rotate(cube.rubik.getFacesDirections());
+	
 										if(!!callback)
 											callback(cube);
 									}
+									//cube.rotation = matrix.multiplyVector3(cube.rotation)
+									
 									cube.position = pos.multiplyScalar(cubeSize);
-									cube.rotation[axis] = originalRotation-t;
-								}
+							}
 								tickerEvent.addListener("tick", anim);								
 							},
 							rotateZ: function(dir){
@@ -268,19 +378,44 @@
 		var rot = function(axis, row, dir) {
 			var cs = _.filter(cubes, function(c) { return c.rubik.current[axis] == row });
 			var ncs = _.filter(cubes, function(c) { return c.rubik.current[axis] != row });
-			console.log(cs.length, ncs.length)
 			//ncs.forEach(function(c) { c.visible = false; });
 			var length = cs.length;
 			var ended = 0;
 			var callback = function(c) {
 				ended++;
 				if(ended == length) {
-					console.log("ended", length);
 					//ncs.forEach(function(c) { c.visible = !!1; });
 				}
 			};
 			cs.forEach(function(c) { c.rubik.rotate.apply(c, [axis,dir,callback]) });
 		}
+		
+		
+		var camX = 16, camZ = 33;
+		$(window).bind("keydown", function(ev){
+			switch(ev.keyCode) {
+				case 37:
+					camX ++;
+				break;
+				case 38:
+					camZ++;
+				break;
+				case 39:
+					camX--;
+				break;
+				case 40:
+					camZ--;
+				break;
+			}
+			posCamera();
+			//camera.lookAt(scene);
+		});
+		var posCamera = function() {
+			camera.position.x = Math.sin(camX/20) * 500;
+			camera.position.y = Math.cos(camX/20) * 500;
+			camera.position.z = Math.sin(camZ/20) * 500;
+		};
+		posCamera();
 
 </script>
 

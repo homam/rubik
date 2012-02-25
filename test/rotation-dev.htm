@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html >
+
+<html>
+<head>
+    <title>using dev branch</title>
+<script src="https://raw.github.com/mrdoob/three.js/9809101319612e9e0abc9f13e7b42c22cd569e24/build/Three.js"></script>
+	<script src="../_.js"></script>
+	<script src="../jquery-1.7.js"></script>
+	<script src="../EventTarget.js"></script>
+    <script src="Three.extension.js" type="text/javascript"></script>
+    <script src="camera.js" type="text/javascript"></script>
+    <script src="geo.axes.js" type="text/javascript"></script>
+    <script src="geo.cube-dev.js" type="text/javascript"></script>
+    <script src="renderer.js" type="text/javascript"></script>
+    <style type="text/css">
+        button
+        {
+            width:60px; height: 40px; font-weight:bold; font-size: 14pt;
+            margin: 5px 5px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+
+
+
+        requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+
+        var scene = new THREE.Scene();
+        scene.dynamic = true;
+
+        var cam = makeCamera(scene);
+        var renderer = makeRenderer(scene, cam.camera);
+        var axes = makeAxes(scene);
+
+
+        var cube = makeCube(scene, axes, renderer,200);
+      
+      
+     
+
+        $(function () {
+            renderer.start();
+        });
+
+        var rot = function (axis, dir) {
+    
+                cube.rotate(axis, dir);
+        };
+
+
+        $(function () {
+            var container = $("#controls");
+            ['X', 'Y', 'Z'].forEach(function (a) {
+                var div = $("<div></div>");
+                var b1 = $("<button>-" + a + "</button>");
+                b1.click(function () {
+                    rot(a.toLowerCase(), -1);
+                });
+                div.append(b1);
+                var b2 = $("<button>+" + a + "</buttom>");
+                b2.click(function () {
+                    rot(a.toLowerCase(), 1);
+                });
+                div.append(b2);
+                container.append(div);
+            });
+        });
+</script>
+
+    <div id="controls" style="position: fixed; bottom: 30px; right:30px">
+
+    </div>
+</body>
+</html>
