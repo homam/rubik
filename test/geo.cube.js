@@ -35,13 +35,9 @@ var makeCube = function (scene, axes, renderer, size) {
         rotate: function (axis, dir, callback) {
             var rotationPerTick = (Math.PI / 2) / 20; // const
             var rotationAxis = axis;
-            var originalTime = null;    
             var rotationProgress = 0;
 
             var animate = function (ev) {
-                var time = ev.t;
-                if (!originalTime)
-                    originalTime = time;
 
                 rotationProgress += rotationPerTick;
                

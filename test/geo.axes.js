@@ -15,12 +15,12 @@ var makeAxes = function (scene) {
     var arrowPos = 350;
     var arrowLength = 50;
     var axesGeos = [
-    { name: 'x', index: 0, lines: [v(0, 0, 0), v(length, 0, 0), v(arrowPos, 0, 0), v(arrowPos - arrowLength, arrowLength, 0), v(arrowPos, 0, 0), v(arrowPos - arrowLength, -arrowLength, 0)] },
-    { name: '-x', index: 1, lines: [v(0, 0, 0), v(-length, 0, 0)] },
-    { name: 'y', index: 2, lines: [v(0, 0, 0), v(0, length, 0), v(0, arrowPos, 0), v(arrowLength, arrowPos - arrowLength, 0), v(0, arrowPos, 0), v(-arrowLength, arrowPos - arrowLength, 0)] },
-    { name: '-y', index: 3, lines: [v(0, 0, 0), v(0, -length, 0)] },
-    { name: 'z', index: 4, lines: [v(0, 0, 0), v(0, 0, length), v(0, 0, arrowPos), v(0, arrowLength, arrowPos - arrowLength), v(0, 0, arrowPos), v(0, -arrowLength, arrowPos - arrowLength)] },
-    { name: '-z', index: 5, lines: [v(0, 0, 0), v(0, 0, -length)] }];
+    { name: 'x', lines: [v(0, 0, 0), v(length, 0, 0), v(arrowPos, 0, 0), v(arrowPos - arrowLength, arrowLength, 0), v(arrowPos, 0, 0), v(arrowPos - arrowLength, -arrowLength, 0)] },
+    { name: '-x', lines: [v(0, 0, 0), v(-length, 0, 0)] },
+    { name: 'y', lines: [v(0, 0, 0), v(0, length, 0), v(0, arrowPos, 0), v(arrowLength, arrowPos - arrowLength, 0), v(0, arrowPos, 0), v(-arrowLength, arrowPos - arrowLength, 0)] },
+    { name: '-y', lines: [v(0, 0, 0), v(0, -length, 0)] },
+    { name: 'z', lines: [v(0, 0, 0), v(0, 0, length), v(0, 0, arrowPos), v(0, arrowLength, arrowPos - arrowLength), v(0, 0, arrowPos), v(0, -arrowLength, arrowPos - arrowLength)] },
+    { name: '-z', lines: [v(0, 0, 0), v(0, 0, -length)] }];
 
     axesGeos.forEach(function (axe, index) {
         var lineGeo = new THREE.Geometry();

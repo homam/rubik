@@ -25,14 +25,7 @@ var initControls = function (cubeMeshes, cam) {
         }
         return new THREE.Vector3(sign(v.x), 0, 0);
     };
-    var worldAxesRotationInfo = [
-    { name: 'x', vector: new THREE.Vector3(1, 0, 0), rotAround: { 'y': { axis: 'y', sign: 1 }, 'x': { axis: 'z', sign: 1 } } },
-    { name: '-x', vector: new THREE.Vector3(-1, 0, 0), rotAround: { 'y': { axis: 'y', sign: -1 }, 'x': { axis: 'z', sign: 1 } } },
-    { name: 'y', vector: new THREE.Vector3(0, 1, 0), rotAround: { 'y': { axis: 'x', sign: -1 }, 'x': { axis: 'z', sign: 1 } } },
-    { name: '-y', vector: new THREE.Vector3(0, -1, 0), rotAround: { 'y': { axis: 'x', sign: 1 }, 'x': { axis: 'z', sign: 1 } } },
-    { name: 'z', vector: new THREE.Vector3(0, 0, 1), rotAround: { 'y': { axis: 'x', sign: 1 }, 'x': { axis: 'y', sign: 1 } } },
-    { name: '-z', vector: new THREE.Vector3(0, 0, -1), rotAround: { 'y': { axis: 'x', sign: 1 }, 'x': { axis: 'y', sign: -1 } } }
-    ];
+
 
     var findMouseEventIntersection = function (event) {
         var vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1,
@@ -106,15 +99,12 @@ var initControls = function (cubeMeshes, cam) {
                 var rayDirectionsDelta = rayDirection.subSelf(mouseOnMeshInitPosition.rayDirection);
                 var normalizedDirectional = vectorToNormalizedDirectional(rayDirectionsDelta);
 
-                //console.log("normalizedDirectional", normalizedDirectional.toString());
-
                 var dx = event.clientX - mouseOnMeshInitPosition.mouse.x;
                 var dy = event.clientY - mouseOnMeshInitPosition.mouse.y;
 
                 if (dx == 0 && dy == 0) return;
 
                 var roundedWorldRotVetor = mouseOnMeshInitPosition.worldVectorParallelToIntersectionFaceNormal.homamRound();
-                //console.log(dx, dy, "roundedWorldRotVetor", roundedWorldRotVetor.toString(), roundedWorldRotVetor);
 
                 var rotationAxis = roundedWorldRotVetor.clone().crossSelf(normalizedDirectional);
                 console.log(
@@ -127,17 +117,6 @@ var initControls = function (cubeMeshes, cam) {
                 var row = sign0(round(mouseOnMeshInitPosition.intersection.object.position[axis]));
                 
                 rot(axis, row, rotationAxis[axis]);
-
-
-               /* var screenAxis =  abs(dy) > abs(dx) ? 'y' : 'x';
-                var d = abs(dy) > abs(dx) ? dy: dx;
-                var axis = _.find(worldAxesRotationInfo, function (a) {
-                    return a.vector.equals(roundedWorldRotVetor);
-                });
-                var rotAround = axis.rotAround[screenAxis];
-                console.log(rotAround.axis, 1, rotAround.sign * sign(d));
-                rot(rotAround.axis,1,rotAround.sign*sign(d));
-                */
             }
         }
         isMouseDown = false;
