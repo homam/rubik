@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <style>
+        body
+        {
+            background-color: silver;
+        }
+    </style>
+    <script src="public/jquery-1.7.js"></script>
+    <script src="public/_.js"></script>
+    <script src="public/game.js"></script>
+    <script src="public/canvas.anim.js"></script>
+    <script>
+        var CP = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+        if (CP.lineTo) {
+            CP.dashedLine = function (x, y, x2, y2, da) {
+                if (!da) da = [10, 5];
+                this.save();
+                var dx = (x2 - x), dy = (y2 - y);
+                var len = Math.sqrt(dx * dx + dy * dy);
+                var rot = Math.atan2(dy, dx);
+                this.translate(x, y);
+                this.moveTo(0, 0);
+                this.rotate(rot);
+                var dc = da.length;
+                var di = 0, draw = true;
+                x = 0;
+                while (len > x) {
+                    x += da[di++ % dc];
+                    if (x > len) x = len;
+                    draw ? this.lineTo(x, 0) : this.moveTo(x, 0);
+                    draw = !draw;
+                }
+                this.restore();
+            }
+        }
+
+        window.requestAnimFrame = (function (callback) {
+            return window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
+            window.oRequestAnimationFrame ||
+            window.msRequestAnimationFrame ||
+            function (callback) {
+                window.setTimeout(callback, 1000 / 60);
+            };
+        })();
+
+        $(function () {
+            var size = { i: 5, j: 5 };
+
+            var boardEl = document.getElementById("board");
+            var boardJq = $(boardEl);
+            var boardWidth = boardJq.width() - 1;
+            var boardHeight = boardJq.height() - 1;
+            var squareWidth = boardWidth / (size.i);
+            var squareHeight = boardHeight / (size.j);
+            var ctx = boardEl.getContext("2d");
+
+            ctx.strokeStyle = "rgba(255,0,0,0.5)";
+            var lineWidth = 1;
+            ctx.lineWidth = lineWidth;
+            for (var i = 0; i <= size.i; i++) {
+                ctx.beginPath();
+                var x = i * squareWidth + lineWidth / 2;
+                ctx.dashedLine(x, 0, x, boardHeight, [10, 10]);
+                ctx.stroke();
+            }
+            for (var j = 0; j <= size.j; j++) {
+                ctx.beginPath();
+                var y = j * squareHeight + lineWidth / 2;
+                ctx.dashedLine(0, y, boardWidth, y, [10, 10]);
+                ctx.stroke();
+            }
+
+            aLineTaken = (function () {
+
+                var directions = ['H', 'V'];
+                var ways = ['F', 'R'];
+
+                var getBox = function (i, j, dir) {
+                    var box = { w: squareWidth, h: squareHeight };
+                    box['H' == dir ? 'h' : 'w'] *= .4;
+                    if (typeof i == 'number' && typeof j == 'number') {
+                        var center = { x: (i * squareWidth + lineWidth / 2), y: (j * squareHeight + lineWidth / 2) };
+                        console.log("center = ", i, j, center.x, center.y);
+                        if ('V' == dir) {
+                            box.x = center.x - squareWidth * .2;
+                            box.y = center.y;
+                        } else if ('H' == dir) {
+                            box.x = center.x;
+                            box.y = center.y - squareHeight * .2;
+                        }
+                    }
+                    return box;
+                };
+
+                var anims = {};
+
+                _.forEach(directions, function (dir) {
+                    var box = getBox(null, null, dir);
+                    anims[dir] = anims[dir] ? anims[dir] : {};
+                    _.forEach(ways, function (w) {
+                        anims[dir][w] = createCanvasAnimation(function (index) {
+                            if (index > 60) return null;
+                            var r = index / 60;
+                            var ratio = (box.w / 10) * r + 5;
+                            var nCanvas = document.createElement("canvas");
+                            nCanvas.width = box.w; nCanvas.height = box.h;
+                            var nctx = nCanvas.getContext('2d');
+                            nctx.strokeStyle = 'rgb(255,0,0)';
+                            nctx.beginPath();
+                            var reverse = 'R' == w;
+                            if ('V' == dir) {
+                                nctx.moveTo(box.w / 2, reverse ? box.h : 0);
+                                nctx.lineTo(box.w / 2, reverse ? (box.h - r * box.h) : r * box.h);
+                            } else if ('H' == dir) {
+                                nctx.moveTo(reverse ? box.w :0, box.h / 2);
+                                nctx.lineTo(reverse ? (box.w - r * box.w) : r * box.w, box.h / 2);
+                            }
+
+                            nctx.stroke();
+
+                            nCanvas.setAttribute('style', 'outline: 1px solid black');
+                            document.body.appendChild(nCanvas);
+
+                            return nCanvas
+                        }, null, 'forward', 1, null, null, { smooth: true, frame: Infinity });
+                    });
+                });
+
+                return function (i, j, dir, way, owner) {
+                    var line = makeALine(i, j, dir, owner);
+                    var points = line.getAdjacentPointPositions();
+                    console.log(getBox(points[0].i, points[0].j, dir))
+                    anims[dir][way].start(ctx, getBox(points[0].i, points[0].j, dir));
+                };
+            })();
+
+            aPointClicked = (function () {
+                
+                var getBox = function (i, j) {
+                    var box = { w: squareWidth * .4, h: squareHeight * .4 };
+                    if (typeof i != 'undefined' && typeof j != 'undefined') {
+                        var center = { x: (i * squareWidth + lineWidth / 2), y: (j * squareHeight + lineWidth / 2) };
+                        box.x = center.x - squareWidth * .2;
+                        box.y = center.y - squareHeight * .2;
+                    }
+                    return box;
+                };
+
+                var box = getBox();
+                var anim = createCanvasAnimation(function (index) {
+                    if (index > 60) return null;
+                    var r = index / 60;
+                    var ratio = (box.w / 10) * r + 5;
+                    var nCanvas = document.createElement("canvas");
+                    nCanvas.width = box.w; nCanvas.height = box.h;
+                    var nctx = nCanvas.getContext('2d');
+                    nctx.fillStyle = 'rgb(0,0,0)';
+                    nctx.beginPath();
+                    nctx.arc(box.w / 2, box.h / 2, ratio, 0, Math.PI * 2);
+                    nctx.fill();
+
+                    return nCanvas;// nctx.getImageData(0, 0, box.w, box.h);
+                }, null, 'both', Infinity, null, null, { smooth: true, frame: -1 });
+
+                return function (i, j) {
+                    return anim.start(ctx, getBox(i, j));
+                };
+            })();
+
+        });
+
+    </script>
+</head>
+<body>
+    <canvas id="board" width="421" height="421" style="outline: solid -0px black;"></canvas>
+</body>
+</html>

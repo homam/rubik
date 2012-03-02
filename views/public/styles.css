@@ -1,0 +1,204 @@
+﻿#game
+{
+    position: absolute;
+    width: 400px;
+    height: 600px;
+    z-index: 10000;
+    display: none;
+}
+
+    #game .header
+    {
+        background-color: silver;
+        outline: 2px black double;
+        height: 40px;
+        position: relative;
+    }
+
+        #game .header .scores
+        {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 200px;
+        }
+
+            #game .header .scores.his
+            {
+                right: 0;
+            }
+
+            #game .header .scores .name
+            {
+                float: left;
+                padding: 8px;
+            }
+
+            #game .header .scores .score
+            {
+                float: left;
+                padding: 8px;
+            }
+            
+            #game .header .scores.turn
+            {
+                background-color: rgba(135, 255, 0, 0.47);
+            }
+
+    #game #board
+    {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        outline: 3px double black;
+        z-index: 10000;
+        display: block;
+    }
+
+    #board .square
+    {
+        position: absolute;
+        -moz-opacity: 0.5;
+        opacity: 0.5;
+    }
+
+    #board .point
+    {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: black;
+        z-index: 11000;
+    }
+
+        #board .point.clicked
+        {
+            /*-ms-transform: scale(2,2);
+                    -moz-transform: scale(2,2);
+                    -o-transform: scale(2,2);
+                    -webkit-transform: scale(2,2);
+                    transform: scale(2,2);*/
+        }
+
+        #board .point.clicked
+        {
+            animation-name: blink_anim;
+            animation-duration: 1s;
+            animation-delay: 0s;
+            animation-iteration-count: infinite;
+            animation-timing-function: ease-out;
+            animation-fill-mode: none;
+            animation-direction:alternate;
+            -webkit-animation-name: blink_anim;
+            -webkit-animation-duration: 1s;
+            -webkit-animation-delay: 0s;
+            -webkit-animation-iteration-count: infinite;
+            -webkit-animation-timing-function: ease-out;
+            -webkit-animation-fill-mode: none;
+            -webkit-animation-direction: alternate;
+            -moz-animation-name: blink_anim;
+            -moz-animation-duration: 1s;
+            -moz-animation-delay: 0s;
+            -moz-animation-iteration-count: infinite;
+            -moz-animation-timing-function: ease-out;
+            -moz-animation-fill-mode: none;
+            -moz-animation-direction: alternate;
+        }
+
+@keyframes blink_anim
+{
+
+    0%
+    {
+        -webkit-transform: scale(1,1);
+    }
+
+    100%
+    {
+        -webkit-transform: scale(2,2);
+    }
+}
+
+@-webkit-keyframes blink_anim
+{
+
+    0%
+    {
+        -webkit-transform: scale(1,1);
+    }
+
+    100%
+    {
+        -webkit-transform: scale(2,2);
+    }
+}
+
+@-moz-keyframes blink_anim
+{
+
+    0%
+    {
+        -webkit-transform: scale(1,1);
+    }
+
+    100%
+    {
+        -webkit-transform: scale(2,2);
+    }
+}
+
+
+#board .line
+{
+    position: absolute;
+    width: 10px;
+    height: 10px;
+}
+
+   
+
+    
+    #board .point.me, #board .line.me, #board .square.me
+    {
+        background-color: blue !important;
+    }
+
+.him
+{
+    background-color: red;
+}
+
+#login, #joinmake, #waiting
+{
+    position: fixed;
+    z-index: 1000;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgb(209, 209, 209);
+    padding: 20px;
+    zoom: 2;
+}
+
+    #joinmake .join
+    {
+        border-bottom: 2px solid gray;
+    }
+
+
+    #joinmake .make
+    {
+    }
+
+#waiting
+{
+    display: none;
+}
+
+body
+{
+    font-family: Verdana;
+}

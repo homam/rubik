@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html >
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -88,3 +89,246 @@
 	</script>
 </body>
 </html>
+=======
+﻿<!DOCTYPE html>
+
+<html xmlns="http://schemas.microsoft.com/intellisense/html5">
+<head>
+    <title>LinePoint Game</title>
+    <script src="public/_.js"></script>
+    <script src="public/game.js"></script>
+    <script src="public/jquery-1.7.js"></script>
+    <script src="public/anim.js"></script>
+    <script src="public/firmin-1.0.0.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+
+    <script>
+        var me = null;
+        var him = null;
+
+        var socket = io.connect();
+
+        
+
+        gameUi = {
+            _uiEvents: {
+                clickedPoints: [],
+                clearPointClicks: function() {
+                    this.clickedPoints.forEach(function (pel) { pel.removeClass('clicked'); });
+                    this.clickedPoints = [];
+                },
+                pointClick: function (pEl) {
+                    if (this.clickedPoints.length > 1)
+                        this.clickedPoints.pop().removeClass('clicked');
+                    if (gameUi._game.turn != me) {
+                        console.log("not your turn!");
+                        return;
+                    }
+                    var p1 = this.clickedPoints[0];
+                    var p2 = pEl;
+                    if (!!p1) {
+                        var getPos = function (p) {return { i: parseInt(p.attr('data-i')), j: parseInt(p.attr('data-j')) }; };
+                        p1.pos = getPos(p1);
+                        p2.pos = getPos(p2);
+                        console.log(p1.pos, p2.pos);
+                        if(!((Math.abs(p1.pos.i - p2.pos.i) + Math.abs(p1.pos.j - p2.pos.j)) == 1) || (p1.pos.i == p2.pos.i && p1.pos.j == p2.pos.j)){
+                            this.clearPointClicks();
+                        }
+                    }
+                    this.clickedPoints = [pEl].concat(this.clickedPoints);
+                    pEl.addClass('clicked');
+                    if (this.clickedPoints.length == 2) {
+                        var topLeft = (p1.pos.i <p2.pos.i) ? p1 : ((p1.pos.j < p2.pos.j)? p1:p2) ;
+                        gameUi.takeALine(topLeft.pos.i, topLeft.pos.j, (p1.pos.i == p2.pos.i ? 'V' : 'H'), topLeft === p1 ? 'F' : 'R');
+                    }
+                }
+            },
+            _game: null,
+            _board: $(),
+            _players: { },
+            _drawBoard: function () {
+                var board = this._board, game = this._game;
+                var boardWidth = board.width();
+                var boardHeight = board.height();
+                var squareWidth = boardWidth / (game.size.i );
+                var squareHeight = boardHeight / (game.size.j);
+                var self = this;
+
+                board.click(function () { self._uiEvents.clearPointClicks(); });
+
+                for (var i = 0; i <= game.size.i; i++) {
+                    for (var j = 0; j <= game.size.j; j++) {
+                        var point = $("<div class='point'></div>");
+                        board.append(point);
+                        var elWidth = point.width();
+                        point.css('left', (i) * squareWidth - point.width() / 2);
+                        point.css('top', (j) * squareHeight - point.height() / 2);
+                        point.attr("data-i", i);
+                        point.attr("data-j", j);
+                        point.addClass("p" + i + "-" + j);
+                        point.click(function (event) {
+                            self._uiEvents.pointClick($(this));
+                            event.stopPropagation();
+                        });
+                    }
+                }
+
+                var pf = parseFloat;
+                var width = pf($(".p2-1").css("left")) - pf($(".p1-1").css("left"));
+                var height = pf($(".p1-2").css("top")) - pf($(".p1-1").css("top"));
+
+
+                var animProps = { duration: '1s', direction: 'normal', 'iteration-count': 1, 'timing-function': 'linear', 'fill-mode': 'both', delay: '0s' };
+                var hAnimation = makeAnimation('line_drawn_h', animProps,
+                    [{ percent: '0', rules: { width: '0px' } }, { percent: '100', rules: { width: width + 'px' } }], {}).ready();
+
+                var vAnimation = makeAnimation('line_drawn_v', animProps,
+                    [{ percent: '0', rules: { height: '0px' } }, { percent: '100', rules: { height: height + 'px' } }], {}).ready();
+                },
+            _aLineTaken: function (i, j, dir, way, owner, turn) {
+                var board = this._board;
+                var players = this._players;
+                var line = makeALine(i, j, dir, owner);
+                var points = line.getAdjacentPointPositions();
+                points.forEach(function (p) {
+                    var pEl = board.find(".p" + p.i + "-" + p.j);
+                    p.el = pEl;
+                    pEl.addClass(players[line.owner]);
+                });
+
+                var lineEl = $("<div class='line'></div>");
+                var width = parseFloat(points[1].el.css("left")) - parseFloat(points[0].el.css("left"));
+                var height = parseFloat(points[1].el.css("top")) - parseFloat(points[0].el.css("top"));
+                var animProps = { duration: '1s', direction: 'normal', 'iteration-count': 1, 'timing-function': 'linear', 'fill-mode': 'both', delay: '0s' };
+
+                if ('H' == line.dir) { // Horizontal dir
+                    lineEl.css("top", points[0].el.css("top"));
+                    if ('R' == way)
+                        lineEl.css("right", parseFloat(board.css("width")) - parseFloat(points[1].el.css("left")));
+                    else
+                        lineEl.css("left", points[0].el.css("left"));
+                    lineEl.addClass('line_drawn_h');
+                }
+                else { // Vertical dir
+                    lineEl.css("left", points[0].el.css("left"));
+                    if ('R' == way)
+                        lineEl.css("bottom", parseFloat(board.css("height")) - parseFloat(points[1].el.css("top")));
+                    else
+                        lineEl.css("top", points[0].el.css("top"));
+
+                    lineEl.addClass('line_drawn_v');
+                }
+
+                lineEl.addClass(players[line.owner]);
+                board.append(lineEl);
+                this._uiEvents.clearPointClicks();
+
+            },
+            _aSquareTaken: function (i, j, owner) {
+                var board = this._board;
+                var players = this._players;
+                var square = makeASquare(i, j, owner);
+                var i = square.i, j = square.j;
+                var tl = board.find('.p' + i + '-' + j);
+                var br = board.find('.p' + (i + 1) + '-' + (j + 1));
+                var sqEl = $("<div class='square'></div>");
+                sqEl.addClass(players[square.owner]);
+                sqEl.css("left", tl.css("left"));
+                sqEl.css("top", tl.css("top"));
+                sqEl.css("width", parseFloat(br.css("left")) - parseFloat(tl.css("left")));
+                sqEl.css("height", parseFloat(br.css("top")) - parseFloat(tl.css("top")));
+                board.append(sqEl);
+            },
+            _setTurn: function (turn) {
+                this._game.turn = turn;
+                $("#game .header .scores").removeClass('turn');
+                $("#game .header .scores." + (turn == me ? 'my' : 'his')).addClass('turn');
+            },
+            _setScores: function(scores) {
+                $("#game .my .score").text(scores[me]);
+                $("#game .his .score").text( scores[him]);
+            },
+            start: function (game) {
+                console.log("gameUI:start: ", game);
+                this._game = game;
+                this._players = {};
+                this._players[game.player1] = game.player1 == me ? 'me' : 'him';
+                this._players[game.player2] = game.player2 == me ? 'me' : 'him';
+                him = game.player1 === me ? game.player2 : game.player1;
+                this._board = $("#board");
+      
+                this._drawBoard();
+                this._setTurn(game.turn);
+
+                var self = this;
+                socket.on('aLineTaken', function (data) {
+                    self._aLineTaken(data.i, data.j, data.dir, data.way, data.owner, data.turn);
+                    self._setTurn(data.turn);
+                });
+                socket.on('aSquareTaken', function (data) { 
+                    self._aSquareTaken(data.i, data.j, data.owner);
+                    self._setScores(data.scores);
+                });
+                $("#game .my .name").text(me);
+                $("#game .his .name").text(me);
+                this._setScores(game.scores);
+            },
+            takeALine: function (i, j, dir, way) {
+                var self = this;
+                socket.emit('takeALine', { i: i, j: j, dir: dir, way: way }, function (data) {
+                    console.log("callback:takeALine: ", i, j, dir, way, " = ", data);
+                    if (data.succeed) {
+                        self._aLineTaken(i, j, dir, way, me, data.turn);
+                        self._setTurn(data.turn);
+                    }
+                });
+            }
+        };
+
+
+    </script>
+    <script src="public/pre_game.js"></script>
+    <link rel="stylesheet" type="text/css" href="public/styles.css" />
+</head>
+<body>
+    <div id="waiting">
+        <h3>Waiting for somebody to join your game...</h3>
+    </div>
+    <div id="joinmake">
+            <section class="join">
+                <h3>Join a game</h3>
+                <ul class="available-games"></ul>
+            </section>
+            <section class="make">
+                <h3>Make</h3>
+                <form>
+                    Name: <input type="text" required name="game_name" />
+                    <button>Create</button>
+                </form>
+            </section>
+    </div>
+    <div id="login">
+        <h3>Choose a unique user name to login</h3>
+        <form>
+             User name: <input type="text" required name="user_name" />
+            <button>Login</button>
+        </form>
+    </div>    
+    <div id="game">
+        <div class="header">
+            <div class="my scores">
+                <div class="name"></div>
+                <div class="score"></div>
+            </div>
+            <div class="his scores">
+                <div class="name"></div>
+                <div class="score"></div>
+            </div>
+        </div>
+        <div id="turn-name"></div>
+        <div id="board"></div>
+     </div>
+</body>
+</html>
+>>>>>>> f1e0c7900c93faed3e456df3b446238219f6f181
