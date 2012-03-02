@@ -27,9 +27,9 @@ var initControls = function (cubeMeshes, cam) {
     };
 
 
-    var findMouseEventIntersection = function (event) {
-        var vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1,
-            -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+    var findMouseEventIntersection = function (clientX, clientY) { 
+        var vector = new THREE.Vector3((clientX / window.innerWidth) * 2 - 1,
+            -(clientY / window.innerHeight) * 2 + 1, 0.5);
         projector.unprojectVector(vector, camera);
 
         var direction = vector.subSelf(camera.position).normalize();
@@ -57,11 +57,13 @@ var initControls = function (cubeMeshes, cam) {
 
     var isMouseDown = false;
     var mouseOnMeshInitPosition = null; // {mouse: {x,y}, worldVectorParallelToIntersectionFaceNormal, rayDirection, intersection}
+
     var onDocumentMouseDown = function (event) {
         isMouseDown = true;
-        // event.preventDefault();
 
-        var rayInfo = findMouseEventIntersection(event);
+        var clientX = event.clientX, clientY = event.clientY, target = event.target;
+    
+        var rayInfo = findMouseEventIntersection(clientX, clientY);
 
         if (!!rayInfo.intersection) {
             var intersect = rayInfo.intersection;
@@ -69,38 +71,33 @@ var initControls = function (cubeMeshes, cam) {
                 intersect.object.matrixRotationWorld.multiplyVector3(intersect.face.normal.clone());
             mouseOnMeshInitPosition = {
                 mouse: {
-                    x: event.clientX,
-                    y: event.clientY
+                    x: clientX,
+                    y: clientY
                 },
                 worldVectorParallelToIntersectionFaceNormal: worldVectorParallelToIntersectionFaceNormal,
                 rayDirection: rayInfo.direction,
                 intersection: intersect
             };
-            return;
-
-            var o = intersects[0].object;
-            var isAxis = function (axisName) { return round(o.position[axisName]) != 0 };
-            var axis = _.find(['x', 'y', 'z'], function (axisName) {
-                if (isAxis(axisName) != 0) return axisName;
-            });
-
-            console.log(axis, round(o.position[axis]));
         } else
-            cam.ui.onMouseDown(event);
+            cam.ui.onMouseDown(clientX, clientY, target);
     };
 
     var onDocumentMouseUp = function (event) {
+        var clientX = event.clientX, clientY = event.clientY;
+        console.log(isMouseDown);
         if (isMouseDown) {
             if (!!mouseOnMeshInitPosition) {
-                var rayInfo = findMouseEventIntersection(event);
+                var rayInfo = findMouseEventIntersection(clientX, clientY);
 
                 var rayDirection = rayInfo.direction.clone();
 
                 var rayDirectionsDelta = rayDirection.subSelf(mouseOnMeshInitPosition.rayDirection);
                 var normalizedDirectional = vectorToNormalizedDirectional(rayDirectionsDelta);
 
-                var dx = event.clientX - mouseOnMeshInitPosition.mouse.x;
-                var dy = event.clientY - mouseOnMeshInitPosition.mouse.y;
+                var dx = clientX - mouseOnMeshInitPosition.mouse.x;
+                var dy = clientY - mouseOnMeshInitPosition.mouse.y;
+
+                console.log("dx = " + dx + ", dy = " + dy);
 
                 if (dx == 0 && dy == 0) return;
 
@@ -121,17 +118,37 @@ var initControls = function (cubeMeshes, cam) {
         }
         isMouseDown = false;
         mouseOnMeshInitPosition = null;
-        cam.ui.onMouseUp(event);
+        cam.ui.onMouseUp(clientX, clientY);
     };
 
     var onDocumentMouseMove = function (event) {
+        var clientX = event.clientX, clientY = event.clientY;
         if (isMouseDown) {
             if (!!mouseOnMeshInitPosition) {
             }
         }
 
-        cam.ui.onMouseMove(event);
+        cam.ui.onMouseMove(clientX, clientY);
     };
+
+
+    document.body.addEventListener('touchstart', function (e) {
+        e.preventDefault();
+        var touch = e.touches[0];
+        onDocumentMouseDown(touch);
+    });
+
+    document.body.addEventListener('touchmove', function (e) {
+        e.preventDefault();
+        var touch = e.touches[0];
+        onDocumentMouseMove(touch);
+    });
+
+    document.body.addEventListener('touchend', function (e) {
+        e.preventDefault();
+        var touch = e.changedTouches[0];
+        onDocumentMouseUp(touch);
+    });
 
 
 

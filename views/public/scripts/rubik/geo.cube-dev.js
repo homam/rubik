@@ -1,5 +1,5 @@
-﻿/// <reference path="../three.js" />
-/// <reference path="../_.js" />
+﻿/// <reference path="../libs/three.js" />
+/// <reference path="../libs/_.js" />
 
 
 var makeCube = function (scene, axes, renderer, size) {
@@ -33,7 +33,7 @@ var makeCube = function (scene, axes, renderer, size) {
     return {
         mesh: cube,
         rotate: function (axis, dir, callback) {
-            var rotationPerTick = (Math.PI / 2) / 20; // const
+            var rotationPerTick = (Math.PI / 2) / config.anim.rotationSpeed; // const
             var rotationAxis = axis;
             var rotationProgress = 0;
 

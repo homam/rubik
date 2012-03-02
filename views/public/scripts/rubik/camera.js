@@ -19,18 +19,18 @@ var makeCamera = function (scene) {
     updatePosition(rotation, sz);
 
     var down = false;
-    var onDocumentMouseDown = function (ev) {
-        if (ev.target == renderer.renderer.domElement) {
+    var onDocumentMouseDown = function (clientX, clientY, target) {
+        if (target == renderer.renderer.domElement) {
             down = true;
-            sx = ev.clientX;
-            sz = ev.clientY;
+            sx = clientX;
+            sz = clientY;
         }
     };
     var onDocumentMosueUp = function (){ down = false; };
-    var onDocumentMouseMove = function (ev) {
+    var onDocumentMouseMove = function (clientX, clientY) {
         if (down) {
-            var dx = ev.clientX - sx;
-            var dy = ev.clientY - sz;
+            var dx = clientX - sx;
+            var dy = clientY - sz;
             rotation += dx / 80;
             sx += dx;
             sz += dy;

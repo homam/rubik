@@ -1,0 +1,90 @@
+<!DOCTYPE html >
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>${isMobile}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+
+    <script type="text/javascript">
+        if (typeof (console) == "undefined") console = {
+            log: function () {
+
+            }
+        };
+    </script>
+
+    {{if release}}
+    <script type="text/javascript" src="public/scripts/libs/ThreeCanvas.js"></script>
+    <script type="text/javascript" src="public/scripts/libs/ThreeExtras.js"></script>
+    <script type="text/javascript" src="public/scripts/libs/ThreeDOM.js"></script>
+    <script type="text/javascript" src="public/scripts/libs/release/_.rel.js"></script>
+    {{else}}
+    <script type="text/javascript" src="public/scripts/libs/Three-dev.js"></script>
+    <script type="text/javascript" src="public/scripts/libs/_.js"></script>
+    <script type="text/javascript" src="public/scripts/libs/jquery-1.7.js"></script>
+
+    {{/if}}
+    <script type="text/javascript" src="public/scripts/libs/EventTarget.js"></script>
+    <script type="text/javascript" src="public/scripts/rubik/Three.extension.js"></script>
+    <script type="text/javascript" src="public/scripts/rubik/camera.js"></script>
+    <script type="text/javascript" src="public/scripts/rubik/geo.axes.js"></script>
+    <script type="text/javascript" src="public/scripts/rubik/geo.cube-dev.js"></script>
+    <script type="text/javascript" src="public/scripts/rubik/controls.js"></script>
+    <script type="text/javascript" src="public/scripts/rubik/renderer.js"></script>
+  
+</head>
+<body>
+    <script>
+
+
+
+        requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+
+        var config = {
+            anim: {
+                rotationSpeed: ${isMobile} ? 10 : 20
+            }
+        } ;
+
+		var scene = new THREE.Scene();
+		scene.dynamic = true;
+       
+		var cam = makeCamera(scene);
+		var renderer = makeRenderer(scene, cam.camera);
+		var axes = makeAxes(scene,false);
+
+		var cubes = [];
+		[-1, 0, 1].forEach(function (x) {
+		    [-1, 0, 1].forEach(function (y) {
+		        [-1, 0, 1].forEach(function (z) {
+		           // return;
+		            var cube = makeCube(scene, axes, renderer, 90);
+		            cube.mesh.position.set(x * 100, y * 100, z * 100);
+		            cubes.push(cube);
+		        });
+		    });
+        });
+
+		window.addEventListener('load', function () {
+		    renderer.start();
+
+		    initControls(_.map(cubes, function (c) { return c.mesh; }), cam);
+		},false);
+
+
+
+
+
+		var rot = function (axis, row, dir) {
+		    var rowCubes =  _.filter(cubes, function (c) {
+		        return Math.round(c.mesh.position[axis] / 100) == row;
+		    });
+		    rowCubes.forEach(function (c) {
+		        c.rotate(axis, dir);
+		    });
+		};
+        
+
+	</script>
+</body>
+</html>
