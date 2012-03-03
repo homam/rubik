@@ -1,6 +1,6 @@
 ﻿{
-    "name": "homam rubik",
-    "version": "1.0.0",
+    "name": "homam",
+    "version": "v0.5.2",
     "scripts": 
 	{
         "start": "node server.js"
