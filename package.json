@@ -7,8 +7,7 @@
     },
     "dependencies": 
 	{
-        "express": "*",
-        "jqtpl": "*",
-        "socket.io": "*"
+        "express": "2.0",
+        "jqtpl": "1.0.9"
     }
 }
