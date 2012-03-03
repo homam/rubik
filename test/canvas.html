@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html >
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+</head>
+<body>
+    <canvas id="canvasElement" width="80" height="80"></canvas>
+
+    <script type="text/javascript">
+
+        var width = 80;
+        var coloredWidth = 60;
+
+        var el = document.createElement("canvas");
+        el.width = width;
+        el.height = width;
+
+        var ctx = el.getContext('2d');
+
+
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, width, width);
+
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(width/2-coloredWidth/2,width/2-coloredWidth/2, coloredWidth, coloredWidth);
+
+        
+        s= el.toDataURL();
+    </script>
+
+</body>
+</html>
