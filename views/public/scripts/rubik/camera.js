@@ -1,42 +1,112 @@
-﻿/// <reference path="../three-dev.js" />
+﻿/// <reference path="../libs/three-dev.js" />
 
 
 var makeCamera = function (scene) {
-    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
 
-    var updatePosition = function (xyRotation, zPos) {
-        camera.position.x = Math.sin(xyRotation) * 500;
-        camera.position.y = Math.cos(xyRotation) * 500;
-        camera.position.z = zPos;
+    /* util functions */
+    var sign = function (x) {
+        return x > 0 ? 1 : -1;
     };
+    var sign0 = function (x) {
+        if (x === 0) return 0;
+        return x > 0 ? 1 : -1;
+    };
+    var cosd = function (d) { return Math.cos(d * Math.PI / 180); }
+    /* end util functions */
 
+    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
     camera.up = new THREE.Vector3(0, 0, 1);
-
     scene.add(camera);
 
-    var sx = 16, sz = 300;
-    var rotation = 16 / 20;
-    updatePosition(rotation, sz);
+    var radious = 800, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60;
+    var onMouseDownPosition = new THREE.Vector2();
 
-    var down = false;
+    var updatePosition = function () {
+        camera.position.x = radious * Math.sin(theta * Math.PI / 180) * Math.cos(phi * Math.PI / 180);
+        camera.position.z = radious * Math.sin(phi * Math.PI / 180);
+        camera.position.y = radious * Math.cos(theta * Math.PI / 180) * Math.cos(phi * Math.PI / 180);
+        camera.updateMatrix();
+    };
+
+    var zoom = function (newRadious) {
+        if ((newRadious > 2000) || (newRadious < 500)) return;
+        radious = newRadious;
+        updatePosition();
+    };
+
+    
+
+    updatePosition();
+
+    var isMouseDown = false;
+    var isShiftKeyDown = false;
+
     var onDocumentMouseDown = function (clientX, clientY, target) {
         if (target == renderer.renderer.domElement) {
-            down = true;
-            sx = clientX;
-            sz = clientY;
+            isMouseDown = true;
+            onMouseDownTheta = theta;
+            onMouseDownPhi = phi;
+            onMouseDownPosition.x = clientX;
+            onMouseDownPosition.y = clientY;
         }
     };
-    var onDocumentMosueUp = function (){ down = false; };
+
+    var onDocumentMosueUp = function (clientX, clientY) {
+        isMouseDown = false;
+        onMouseDownPosition.x = clientX - onMouseDownPosition.x;
+        onMouseDownPosition.y = clientY - onMouseDownPosition.y;
+    };
+
     var onDocumentMouseMove = function (clientX, clientY) {
-        if (down) {
-            var dx = clientX - sx;
-            var dy = clientY - sz;
-            rotation += dx / 80;
-            sx += dx;
-            sz += dy;
-            updatePosition(rotation, camera.position.z + dy*2);
+        if (isMouseDown) {
+
+            if (isShiftKeyDown) {
+                zoom(radious+sign0(clientY - onMouseDownPosition.y)*50);
+
+            } else {
+
+                var lastPhi = phi;
+                phi = ((clientY - onMouseDownPosition.y) * 0.5) + onMouseDownPhi;
+                theta = (sign(cosd(phi)) * (clientX - onMouseDownPosition.x) * 0.5) + onMouseDownTheta; // multiplying by sign(cosd(phi) to fix inverse rotation direction issue
+
+
+                if (sign0(cosd(lastPhi)) != sign0(cosd(phi))) camera.up = camera.up.multiplyScalar(-1); // gimbal lock
+
+                // if (phi <= -90) // phi = -90;
+                // if (phi >= 90) phi = 90;
+
+                updatePosition();
+            }
         }
     }
+
+    var onDocumentGesureEnd = function (scale) {
+        var newRadious = radious - (scale - 1) * 200;
+        zoom(newRadious);
+    };
+
+
+    window.addEventListener('keydown', function (event) {
+        var code = event.keyCode;
+        isShiftKeyDown = (16 == code);
+    }, false);
+
+    window.addEventListener('keyup', function (event) {
+        var code = event.keyCode;
+        isShiftKeyDown = !(16 == code);
+    }, false);
+
+
+    window.addEventListener('gesturechange', function (event) {
+        onDocumentGesureEnd(event.scale);
+    }, false);
+
+    /*
+    c = new THREE.TrackballControls(camera);
+    onDocumentMosueUp = function () { c.update(); };
+    onDocumentMouseDown = function () { c.update(); };
+    onDocumentMouseMove = function () { c.update(); };
+    //*/
 
     return {
         camera: camera,
@@ -46,5 +116,22 @@ var makeCamera = function (scene) {
             onMouseMove: onDocumentMouseMove
         }
     };
+
+
+
+    /*
+
+
+    function onDocumentMouseWheel(event) {
+
+        radious -= event.wheelDeltaY;
+
+        camera.position.x = radious * Math.sin(theta * Math.PI / 360) * Math.cos(phi * Math.PI / 360);
+        camera.position.y = radious * Math.sin(phi * Math.PI / 360);
+        camera.position.z = radious * Math.cos(theta * Math.PI / 360) * Math.cos(phi * Math.PI / 360);
+        camera.updateMatrix();
+    }
+
+    */
 }
 

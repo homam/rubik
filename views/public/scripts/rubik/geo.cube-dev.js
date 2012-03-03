@@ -33,6 +33,7 @@ var makeCube = function (scene, axes, renderer, size) {
     return {
         mesh: cube,
         rotate: function (axis, dir, callback) {
+
             var rotationPerTick = (Math.PI / 2) / config.anim.rotationSpeed; // const
             var rotationAxis = axis;
             var rotationProgress = 0;

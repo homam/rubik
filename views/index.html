@@ -31,6 +31,16 @@
     <script type="text/javascript" src="public/scripts/rubik/geo.cube-dev.js"></script>
     <script type="text/javascript" src="public/scripts/rubik/controls.js"></script>
     <script type="text/javascript" src="public/scripts/rubik/renderer.js"></script>
+
+    <style type="text/css">
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+      
+        }
+        
+    </style>
   
 </head>
 <body>
@@ -42,45 +52,76 @@
 
         var config = {
             anim: {
-                rotationSpeed: ${isMobile} ? 10 : 20
+                rotationSpeed: ${isMobile} ? 10 : 30
             }
         } ;
 
-		var scene = new THREE.Scene();
-		scene.dynamic = true;
-       
-		var cam = makeCamera(scene);
-		var renderer = makeRenderer(scene, cam.camera);
-		var axes = makeAxes(scene,false);
 
-		var cubes = [];
-		[-1, 0, 1].forEach(function (x) {
-		    [-1, 0, 1].forEach(function (y) {
-		        [-1, 0, 1].forEach(function (z) {
-		           // return;
-		            var cube = makeCube(scene, axes, renderer, 90);
-		            cube.mesh.position.set(x * 100, y * 100, z * 100);
-		            cubes.push(cube);
-		        });
-		    });
-        });
+        var scene, cam, renderer, cubes;
 
 		window.addEventListener('load', function () {
-		    renderer.start();
 
-		    initControls(_.map(cubes, function (c) { return c.mesh; }), cam);
+		    document.body.style.minHeight = "416px";
+		    setTimeout(function() {
+		        scrollTo(0,1);   
+
+
+
+		         scene = new THREE.Scene();
+		        scene.dynamic = true;
+       
+		         cam = makeCamera(scene);
+		         renderer = makeRenderer(scene, cam.camera);
+		        var axes = makeAxes(scene,false);
+
+		         cubes = [];
+		        [-1, 0, 1].forEach(function (x) {
+		            [-1, 0, 1].forEach(function (y) {
+		                [-1, 0, 1].forEach(function (z) {
+		                    // return;
+		                    var cube = makeCube(scene, axes, renderer, 90);
+		                    cube.mesh.position.set(x * 100, y * 100, z * 100);
+		                    cubes.push(cube);
+		                });
+		            });
+		        });
+
+		        renderer.start();
+
+		        initControls(_.map(cubes, function (c) { return c.mesh; }), cam);
+
+		    }, 100);
+
+		    
+
+		    
+
 		},false);
 
 
 
 
+		var busyRotating = false;
 
 		var rot = function (axis, row, dir) {
+		    
+		    if(typeof(row) == 'undefined' || typeof(dir) == 'undefined' || typeof(axis) == 'undefined') return;
+
+		    if(busyRotating) return;
+		    busyRotating = true;
+
 		    var rowCubes =  _.filter(cubes, function (c) {
 		        return Math.round(c.mesh.position[axis] / 100) == row;
-		    });
+            });
+		    var rotatingCubesCount = 0;
 		    rowCubes.forEach(function (c) {
-		        c.rotate(axis, dir);
+		        c.rotate(axis, dir, function() {
+		            rotatingCubesCount--;
+		            if(rotatingCubesCount==0) {
+		                busyRotating = false;
+		            }
+                });
+		        rotatingCubesCount++;
 		    });
 		};
         

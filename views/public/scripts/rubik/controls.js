@@ -1,4 +1,4 @@
-﻿/// <reference path="../three-dev.js" />
+﻿/// <reference path="../libs/three-dev.js" />
 /// <reference path="../_.js" />
 
 var initControls = function (cubeMeshes, cam) {
@@ -84,7 +84,6 @@ var initControls = function (cubeMeshes, cam) {
 
     var onDocumentMouseUp = function (event) {
         var clientX = event.clientX, clientY = event.clientY;
-        console.log(isMouseDown);
         if (isMouseDown) {
             if (!!mouseOnMeshInitPosition) {
                 var rayInfo = findMouseEventIntersection(clientX, clientY);
@@ -97,8 +96,6 @@ var initControls = function (cubeMeshes, cam) {
                 var dx = clientX - mouseOnMeshInitPosition.mouse.x;
                 var dy = clientY - mouseOnMeshInitPosition.mouse.y;
 
-                console.log("dx = " + dx + ", dy = " + dy);
-
                 if (dx == 0 && dy == 0) return;
 
                 var roundedWorldRotVetor = mouseOnMeshInitPosition.worldVectorParallelToIntersectionFaceNormal.homamRound();
@@ -108,6 +105,8 @@ var initControls = function (cubeMeshes, cam) {
                     "normalizedDirectional", normalizedDirectional.toString(),
                     "roundedWorldRotVetor", roundedWorldRotVetor.toString(),
                     "rotation axis:", rotationAxis.toString());
+
+                if (rotationAxis.isZero()) return; // cannot rotate around 0 vector
 
                 console.log(mouseOnMeshInitPosition.intersection.object.position.toString());
                 var axis = _.find(['x', 'y', 'z'], function (a) { return rotationAxis[a] != 0; });
@@ -134,21 +133,27 @@ var initControls = function (cubeMeshes, cam) {
 
     document.body.addEventListener('touchstart', function (e) {
         e.preventDefault();
-        var touch = e.touches[0];
-        onDocumentMouseDown(touch);
-    });
+        if (e.touches.length == 1) {
+            var touch = e.touches[0];
+            onDocumentMouseDown(touch);
+        }
+    },false);
 
     document.body.addEventListener('touchmove', function (e) {
         e.preventDefault();
-        var touch = e.touches[0];
-        onDocumentMouseMove(touch);
-    });
+        if (e.touches.length == 1) {
+            var touch = e.touches[0];
+            onDocumentMouseMove(touch);
+        }
+    },false);
 
     document.body.addEventListener('touchend', function (e) {
         e.preventDefault();
-        var touch = e.changedTouches[0];
-        onDocumentMouseUp(touch);
-    });
+        if (e.touches.length == 0 && e.changedTouches.length == 1) {
+            var touch = e.changedTouches[0];
+            onDocumentMouseUp(touch);
+        }
+    },false);
 
 
 
