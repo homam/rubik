@@ -1,10 +1,8 @@
 <!DOCTYPE html >
-
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>${isMobile}</title>
+    <title>${isMobile && release}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-
     <script type="text/javascript">
         if (typeof (console) == "undefined") console = {
             log: function () {
@@ -12,36 +10,31 @@
             }
         };
     </script>
-
     {{if release}}
     <script type="text/javascript" src="public/scripts/libs/ThreeCanvas.js"></script>
     <script type="text/javascript" src="public/scripts/libs/ThreeExtras.js"></script>
     <script type="text/javascript" src="public/scripts/libs/ThreeDOM.js"></script>
     <script type="text/javascript" src="public/scripts/libs/release/_.rel.js"></script>
     {{else}}
-    <script type="text/javascript" src="public/scripts/libs/Three-dev.js"></script>
+    <script type="text/javascript" src="public/scripts/libs/release/Three.js"></script>
     <script type="text/javascript" src="public/scripts/libs/_.js"></script>
     <script type="text/javascript" src="public/scripts/libs/jquery-1.7.js"></script>
-
     {{/if}}
     <script type="text/javascript" src="public/scripts/libs/EventTarget.js"></script>
     <script type="text/javascript" src="public/scripts/rubik/Three.extension.js"></script>
     <script type="text/javascript" src="public/scripts/rubik/camera.js"></script>
     <script type="text/javascript" src="public/scripts/rubik/geo.axes.js"></script>
-    <script type="text/javascript" src="public/scripts/rubik/geo.cube-dev.js"></script>
+    <!--<script type="text/javascript" src="public/scripts/rubik/geo.cube-dev.js"></script>-->
+        <script type="text/javascript" src="public/scripts/rubik/test/cube-canvas.js"></script>
     <script type="text/javascript" src="public/scripts/rubik/controls.js"></script>
     <script type="text/javascript" src="public/scripts/rubik/renderer.js"></script>
-
     <style type="text/css">
         canvas {
             position: fixed;
             top: 0;
             left: 0;
-      
         }
-        
     </style>
-  
 </head>
 <body>
     <script>
@@ -53,79 +46,79 @@
         var config = {
             anim: {
                 rotationSpeed: ${isMobile} ? 10 : 30
-            }
+        }
         } ;
 
 
         var scene, cam, renderer, cubes;
 
-		window.addEventListener('load', function () {
+        window.addEventListener('load', function () {
 
-		    document.body.style.minHeight = "416px";
-		    setTimeout(function() {
-		        scrollTo(0,1);   
+            document.body.style.minHeight = "416px";
+            setTimeout(function() {
+                scrollTo(0,1);   
 
 
 
-		         scene = new THREE.Scene();
-		        scene.dynamic = true;
+                scene = new THREE.Scene();
+                scene.dynamic = true;
        
-		         cam = makeCamera(scene);
-		         renderer = makeRenderer(scene, cam.camera);
-		        var axes = makeAxes(scene,false);
+                cam = makeCamera(scene);
+                renderer = makeRenderer(scene, cam.camera);
+                var axes = makeAxes(scene,false);
 
-		         cubes = [];
-		        [-1, 0, 1].forEach(function (x) {
-		            [-1, 0, 1].forEach(function (y) {
-		                [-1, 0, 1].forEach(function (z) {
-		                    // return;
-		                    var cube = makeCube(scene, axes, renderer, 90);
-		                    cube.mesh.position.set(x * 100, y * 100, z * 100);
-		                    cubes.push(cube);
-		                });
-		            });
-		        });
-
-		        renderer.start();
-
-		        initControls(_.map(cubes, function (c) { return c.mesh; }), cam);
-
-		    }, 100);
-
-		    
-
-		    
-
-		},false);
-
-
-
-
-		var busyRotating = false;
-
-		var rot = function (axis, row, dir) {
-		    
-		    if(typeof(row) == 'undefined' || typeof(dir) == 'undefined' || typeof(axis) == 'undefined') return;
-
-		    if(busyRotating) return;
-		    busyRotating = true;
-
-		    var rowCubes =  _.filter(cubes, function (c) {
-		        return Math.round(c.mesh.position[axis] / 100) == row;
-            });
-		    var rotatingCubesCount = 0;
-		    rowCubes.forEach(function (c) {
-		        c.rotate(axis, dir, function() {
-		            rotatingCubesCount--;
-		            if(rotatingCubesCount==0) {
-		                busyRotating = false;
-		            }
+                cubes = [];
+                [-1, 0, 1].forEach(function (x) {
+                    [-1, 0, 1].forEach(function (y) {
+                        [-1, 0, 1].forEach(function (z) {
+                            //if(!(x===y && x===z && x===0 )) return;
+                            var cube = makeCube(scene, axes, renderer, 90);
+                            cube.mesh.position.set(x * 100, y * 100, z * 100);
+                            cubes.push(cube);
+                        });
+                    });
                 });
-		        rotatingCubesCount++;
-		    });
-		};
+
+                renderer.start();
+
+                initControls(_.map(cubes, function (c) { return c.mesh; }), cam);
+
+            }, 100);
+
+		    
+
+		    
+
+        },false);
+
+
+
+
+        var busyRotating = false;
+
+        var rot = function (axis, row, dir) {
+		    
+            if(typeof(row) == 'undefined' || typeof(dir) == 'undefined' || typeof(axis) == 'undefined') return;
+
+            if(busyRotating) return;
+            busyRotating = true;
+
+            var rowCubes =  _.filter(cubes, function (c) {
+                return Math.round(c.mesh.position[axis] / 100) == row;
+            });
+            var rotatingCubesCount = 0;
+            rowCubes.forEach(function (c) {
+                c.rotate(axis, dir, function() {
+                    rotatingCubesCount--;
+                    if(rotatingCubesCount==0) {
+                        busyRotating = false;
+                    }
+                });
+                rotatingCubesCount++;
+            });
+        };
         
 
-	</script>
+    </script>
 </body>
 </html>
