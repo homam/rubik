@@ -39,7 +39,7 @@
 <body>
     <script>
 
-
+        var cube_outer_size = 10;
 
         requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
 
@@ -72,8 +72,8 @@
                     [-1, 0, 1].forEach(function (y) {
                         [-1, 0, 1].forEach(function (z) {
                             //if(!(x===y && x===z && x===0 )) return;
-                            var cube = makeCube(scene, axes, renderer, 90);
-                            cube.mesh.position.set(x * 100, y * 100, z * 100);
+                            var cube = makeCube(scene, axes, renderer, cube_outer_size, {x:x,y:y,z:z});
+                           
                             cubes.push(cube);
                         });
                     });
@@ -104,7 +104,7 @@
             busyRotating = true;
 
             var rowCubes =  _.filter(cubes, function (c) {
-                return Math.round(c.mesh.position[axis] / 100) == row;
+                return Math.round(c.mesh.position[axis] / cube_outer_size) == row;
             });
             var rotatingCubesCount = 0;
             rowCubes.forEach(function (c) {

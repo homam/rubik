@@ -18,7 +18,7 @@ var makeCamera = function (scene) {
     camera.up = new THREE.Vector3(0, 0, 1);
     scene.add(camera);
 
-    var radious = 800, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60;
+    var radious = cube_outer_size*8, theta = 45, onMouseDownTheta = 45, phi = 60, onMouseDownPhi = 60;
     var onMouseDownPosition = new THREE.Vector2();
 
     var updatePosition = function () {
@@ -29,7 +29,7 @@ var makeCamera = function (scene) {
     };
 
     var zoom = function (newRadious) {
-        if ((newRadious > 2000) || (newRadious < 500)) return;
+        if ((newRadious > cube_outer_size * 20) || (newRadious < cube_outer_size*5)) return;
         radious = newRadious;
         updatePosition();
     };

@@ -15,7 +15,7 @@ var initControls = function (cubeMeshes, cam) {
         return x > 0 ? 1 : -1;
     };
     var abs = Math.abs;
-    var round = function (x) { return Math.round(x / 100); };
+    var round = function (x) { return Math.round(x / cube_outer_size); };
     var vectorToNormalizedDirectional = function (v) {
         var max = Math.max(abs(v.x), abs(v.y), abs(v.z));
         if(max> abs(v.x)) {

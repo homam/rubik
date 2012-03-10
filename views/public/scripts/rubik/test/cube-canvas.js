@@ -8,7 +8,7 @@ var getCubeTexture = (function () {
     var makeTexture = function (color, size) {
 
         var width = size;
-        var coloredWidth = size * .8;
+        var coloredWidth = 8;//size * .8;
 
         var el = document.createElement("canvas");
         el.width = width;
@@ -22,6 +22,8 @@ var getCubeTexture = (function () {
 
         ctx.fillStyle = new THREE.Color(color).getContextStyle()
         ctx.fillRect(width / 2 - coloredWidth / 2, width / 2 - coloredWidth / 2, coloredWidth, coloredWidth);
+
+        console.log(width / 2 - coloredWidth / 2, width / 2 - coloredWidth / 2, coloredWidth, coloredWidth);
 
         var url = el.toDataURL();
         var img = new Image();
@@ -44,8 +46,8 @@ var getCubeTexture = (function () {
 
 
 
-var makeCube = function (scene, axes, renderer, size) {
-    
+var makeCube = function (scene, axes, renderer, outersize, pos) {
+
     // cache utils
     makeCube.cache = !!makeCube.cache ? makeCube.cache : {
         get: function (key, maker) {
@@ -65,28 +67,39 @@ var makeCube = function (scene, axes, renderer, size) {
     };
 
 
+    var size = outersize * .9;
 
-    var materials = makeCube.cache.get("CubeMaterials", function () {
+    var materials = ( function () {
         var materials = [];
-        for (var i = 0; i < 6; i++)
-            materials.push(new THREE.MeshLambertMaterial({ map: getCubeTexture(getFaceColorByIndex(i), size), overdraw: true }));
+        for (var i = 0; i < 6; i++) {
+            if ( (pos.x > -1 && i == 1) || (pos.y > -1 && i == 3) || (pos.z > -1 && i == 5) || (pos.x <1 && i ==0) || (pos.y <1 && i == 2) || (pos.z<1 &&i==4))  {
+                console.log(pos.x);
+                materials.push(new THREE.MeshBasicMaterial({ color: 0 }));
+            } else 
+                materials.push(new THREE.MeshBasicMaterial({ color: getFaceColorByIndex(i) }));
+                //materials.push(new THREE.MeshLambertMaterial({ map: getCubeTexture(getFaceColorByIndex(i), size), overdraw: true }));
+        }
         return materials;
-    });
+    })();
 
 
-    size = !!size ? size : 60;
+    
     var cube = new THREE.Mesh(
-        makeCube.cache.get("CubeGeometry", function () { return new THREE.CubeGeometry(size, size, size, 1, 1, 1, materials); }),
+       new THREE.CubeGeometry(size, size, size, 1, 1, 1, materials),
         makeCube.cache.get("MeshFaceMaterial", function () { return new THREE.MeshFaceMaterial(); })
     );
     scene.add(cube);
-    cube.dynamic = true;
+    cube.dynamic = false;
     cube.matrixAutoUpdate = true;
     cube.rotation.set(0, 0, 0);
     cube.matrix.setRotationFromEuler(cube.rotation);
+    cube.position.set(pos.x * outersize, pos.y * outersize, pos.z * outersize);
 
 
     var tickerEvent = renderer.tickerEvent;
+
+    if ((pos.x ==- pos.y && pos.x === pos.z && pos.x === 0))
+        cube.visible = false;
 
     return {
         mesh: cube,
@@ -95,8 +108,6 @@ var makeCube = function (scene, axes, renderer, size) {
             var rotationPerTick = (Math.PI / 2) / config.anim.rotationSpeed; // const
             var rotationAxis = axis;
             var rotationProgress = 0;
-
-            console.log("r");
 
             var animate = function (ev) {
 
