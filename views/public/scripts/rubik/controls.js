@@ -1,4 +1,5 @@
-﻿/// <reference path="../libs/three-dev.js" />
+﻿/// <reference path="../libs/_.js" />
+/// <reference path="../libs/three-dev.js" />
 /// <reference path="../_.js" />
 
 var initControls = function (cubeMeshes, cam) {
@@ -16,6 +17,7 @@ var initControls = function (cubeMeshes, cam) {
     };
     var abs = Math.abs;
     var round = function (x) { return Math.round(x / cube_outer_size); };
+
     var vectorToNormalizedDirectional = function (v) {
         var max = Math.max(abs(v.x), abs(v.y), abs(v.z));
         if(max> abs(v.x)) {
@@ -40,9 +42,6 @@ var initControls = function (cubeMeshes, cam) {
 
         if (intersects.length > 0) {
             var intersect = intersects[0];
-            console.log("intersection:", intersect, intersect.face.toString(), "facing direction:",
-                    intersect.object.matrixRotationWorld.multiplyVector3(intersect.face.normal.clone()).toString()
-                  );
             return {
                 intersection: intersect,
                 direction: direction
@@ -67,52 +66,56 @@ var initControls = function (cubeMeshes, cam) {
 
         if (!!rayInfo.intersection) {
             var intersect = rayInfo.intersection;
-            var worldVectorParallelToIntersectionFaceNormal =
+
+            // the user has to had clicked on a an acitve (colored) face 
+            if (_.any(intersect.object.rubikActiveFaces, function (f) {
+                console.log(intersect.face.materialIndex, f);
+               return intersect.face.materialIndex == f;
+            })) {
+                var worldVectorParallelToIntersectionFaceNormal =
                 intersect.object.matrixRotationWorld.multiplyVector3(intersect.face.normal.clone());
-            mouseOnMeshInitPosition = {
-                mouse: {
-                    x: clientX,
-                    y: clientY
-                },
-                worldVectorParallelToIntersectionFaceNormal: worldVectorParallelToIntersectionFaceNormal,
-                rayDirection: rayInfo.direction,
-                intersection: intersect
-            };
+                mouseOnMeshInitPosition = {
+                    mouse: {
+                        x: clientX,
+                        y: clientY
+                    },
+                    worldVectorParallelToIntersectionFaceNormal: worldVectorParallelToIntersectionFaceNormal,
+                    rayDirection: rayInfo.direction,
+                    intersection: intersect
+                };
+            }
         } else
             cam.ui.onMouseDown(clientX, clientY, target);
     };
 
     var onDocumentMouseUp = function (event) {
-        var clientX = event.clientX, clientY = event.clientY;
+        var clientX = event.clientX, clientY = event.clientY
         if (isMouseDown) {
             if (!!mouseOnMeshInitPosition) {
-                var rayInfo = findMouseEventIntersection(clientX, clientY);
-
-                var rayDirection = rayInfo.direction.clone();
-
-                var rayDirectionsDelta = rayDirection.subSelf(mouseOnMeshInitPosition.rayDirection);
-                var normalizedDirectional = vectorToNormalizedDirectional(rayDirectionsDelta);
 
                 var dx = clientX - mouseOnMeshInitPosition.mouse.x;
                 var dy = clientY - mouseOnMeshInitPosition.mouse.y;
 
-                if (dx == 0 && dy == 0) return;
+                if (!(dx == 0 && dy == 0)) {
 
-                var roundedWorldRotVetor = mouseOnMeshInitPosition.worldVectorParallelToIntersectionFaceNormal.homamRound();
+                    var rayInfo = findMouseEventIntersection(clientX, clientY);
 
-                var rotationAxis = roundedWorldRotVetor.clone().crossSelf(normalizedDirectional);
-                console.log(
-                    "normalizedDirectional", normalizedDirectional.toString(),
-                    "roundedWorldRotVetor", roundedWorldRotVetor.toString(),
-                    "rotation axis:", rotationAxis.toString());
+                    var rayDirection = rayInfo.direction.clone();
 
-                if (rotationAxis.isZero()) return; // cannot rotate around 0 vector
+                    var rayDirectionsDelta = rayDirection.subSelf(mouseOnMeshInitPosition.rayDirection);
+                    var normalizedDirectional = vectorToNormalizedDirectional(rayDirectionsDelta);
 
-                console.log(mouseOnMeshInitPosition.intersection.object.position.toString());
-                var axis = _.find(['x', 'y', 'z'], function (a) { return rotationAxis[a] != 0; });
-                var row = sign0(round(mouseOnMeshInitPosition.intersection.object.position[axis]));
-                
-                rot(axis, row, rotationAxis[axis]);
+                    var roundedWorldRotVetor = mouseOnMeshInitPosition.worldVectorParallelToIntersectionFaceNormal.homamRound();
+
+                    var rotationAxis = roundedWorldRotVetor.clone().crossSelf(normalizedDirectional);
+ 
+                    if (rotationAxis.isZero()) return; // cannot rotate around 0 vector
+
+                    var axis = _.find(['x', 'y', 'z'], function (a) { return rotationAxis[a] != 0; });
+                    var row = sign0(round(mouseOnMeshInitPosition.intersection.object.position[axis]));
+
+                    rot(axis, row, rotationAxis[axis]);
+                }
             }
         }
         isMouseDown = false;
@@ -131,34 +134,38 @@ var initControls = function (cubeMeshes, cam) {
     };
 
 
-    document.body.addEventListener('touchstart', function (e) {
-        e.preventDefault();
-        if (e.touches.length == 1) {
-            var touch = e.touches[0];
-            onDocumentMouseDown(touch);
-        }
-    },false);
+    if ('ontouchstart' in document.documentElement) {
 
-    document.body.addEventListener('touchmove', function (e) {
-        e.preventDefault();
-        if (e.touches.length == 1) {
-            var touch = e.touches[0];
-            onDocumentMouseMove(touch);
-        }
-    },false);
+        document.body.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            if (e.touches.length == 1) {
+                var touch = e.touches[0];
+                onDocumentMouseDown(touch);
+            }
+        }, false);
 
-    document.body.addEventListener('touchend', function (e) {
-        e.preventDefault();
-        if (e.touches.length == 0 && e.changedTouches.length == 1) {
-            var touch = e.changedTouches[0];
-            onDocumentMouseUp(touch);
-        }
-    },false);
+        document.body.addEventListener('touchmove', function (e) {
+            e.preventDefault();
+            if (e.touches.length == 1) {
+                var touch = e.touches[0];
+                onDocumentMouseMove(touch);
+            }
+        }, false);
 
+        document.body.addEventListener('touchend', function (e) {
+            e.preventDefault();
+            if (e.touches.length == 0 && e.changedTouches.length == 1) {
+                var touch = e.changedTouches[0];
+                onDocumentMouseUp(touch);
+            }
+        }, false);
 
+    } else {
 
-    document.addEventListener('mousedown', onDocumentMouseDown, false);
-    document.addEventListener('mouseup', onDocumentMouseUp, false);
-    document.addEventListener('mousemove', onDocumentMouseMove, false);
+        document.addEventListener('mousedown', onDocumentMouseDown, false);
+        document.addEventListener('mouseup', onDocumentMouseUp, false);
+        document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+    }
 
 };

@@ -6,9 +6,9 @@ var makeAxes = function (scene, draw) {
     }
 
     axesColors = {
-        'x': { color: 0xaf0000, v: v(1, 0, 0), index: 0 }, '-x': { color: 0xffc5c5, v: v(-1, 0, 0), index: 1 },
-        'y': { color: 0x081e77, v: v(0, 1, 0), index: 2 }, '-y': { color: 0xc2ccf3, v: v(0, -1, 0), index: 3 },
-        'z': { color: 0x008c00, v: v(0, 0, 1), index: 4 }, '-z': { color: 0xbff8bf, v: v(0, 0, -1), index: 5 }
+        'x': { color: 0xFFD339, v: v(1, 0, 0), index: 0 }, '-x': { color: 0xB23400, v: v(-1, 0, 0), index: 1 },
+        'y': { color: 0xF64BFF, v: v(0, 1, 0), index: 2 }, '-y': { color: 0x00C3CC, v: v(0, -1, 0), index: 3 },
+        'z': { color: 0x36B24E, v: v(0, 0, 1), index: 4 }, '-z': { color: 0x6755FF, v: v(0, 0, -1), index: 5 }
     };
 
     if (draw) {

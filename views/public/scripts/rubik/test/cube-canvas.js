@@ -73,21 +73,23 @@ var makeCube = function (scene, axes, renderer, outersize, pos) {
         var materials = [];
         for (var i = 0; i < 6; i++) {
             if ( (pos.x > -1 && i == 1) || (pos.y > -1 && i == 3) || (pos.z > -1 && i == 5) || (pos.x <1 && i ==0) || (pos.y <1 && i == 2) || (pos.z<1 &&i==4))  {
-                console.log(pos.x);
-                materials.push(new THREE.MeshBasicMaterial({ color: 0 }));
+                materials.push({index:i, active:false, material: new THREE.MeshBasicMaterial({ color: 0 })});
             } else 
-                materials.push(new THREE.MeshBasicMaterial({ color: getFaceColorByIndex(i) }));
+                materials.push({index: i, active: true, material: new THREE.MeshBasicMaterial({ color: getFaceColorByIndex(i) })});
                 //materials.push(new THREE.MeshLambertMaterial({ map: getCubeTexture(getFaceColorByIndex(i), size), overdraw: true }));
         }
         return materials;
     })();
 
-
+   
     
     var cube = new THREE.Mesh(
-       new THREE.CubeGeometry(size, size, size, 1, 1, 1, materials),
+       new THREE.CubeGeometry(size, size, size, 1, 1, 1, _.map(materials, function (f) { return f.material; })),
         makeCube.cache.get("MeshFaceMaterial", function () { return new THREE.MeshFaceMaterial(); })
     );
+
+    // active (colored) faces, used in click intersection detection
+    cube.rubikActiveFaces = _.map(_.filter(materials, function (f) { return f.active; }), function (f) { return f.index; });
     scene.add(cube);
     cube.dynamic = false;
     cube.matrixAutoUpdate = true;

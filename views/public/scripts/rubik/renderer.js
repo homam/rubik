@@ -7,7 +7,7 @@ var makeRenderer = function (scene, camera) {
         var renderer = new THREE.CanvasRenderer();//CanvasRenderer(); //WebGLRenderer //SVGRenderer
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
-       // renderer.setClearColorHex(0xEEEEEE, 1.0);
+        // renderer.setClearColorHex(0xEEEEEE, 1.0);
         renderer.clear();
         renderer.shadowCameraFov = 50;
         renderer.shadowMapWidth = 1024;;

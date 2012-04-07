@@ -22,10 +22,9 @@
     {{/if}}
     <script type="text/javascript" src="public/scripts/libs/EventTarget.js"></script>
     <script type="text/javascript" src="public/scripts/rubik/Three.extension.js"></script>
-    <script type="text/javascript" src="public/scripts/rubik/camera.js"></script>
-    <script type="text/javascript" src="public/scripts/rubik/geo.axes.js"></script>
-    <!--<script type="text/javascript" src="public/scripts/rubik/geo.cube-dev.js"></script>-->
-        <script type="text/javascript" src="public/scripts/rubik/test/cube-canvas.js"></script>
+    <script type="text/javascript" src="public/scripts/rubik/oop/Camera.js"></script>
+    <script type="text/javascript" src="public/scripts/rubik/oop/Cube.js"></script>
+
     <script type="text/javascript" src="public/scripts/rubik/controls.js"></script>
     <script type="text/javascript" src="public/scripts/rubik/renderer.js"></script>
     <style type="text/css">
@@ -62,23 +61,23 @@
             setTimeout(function() {
                 scrollTo(0,1);   
 
-
-
                 scene = new THREE.Scene();
                 scene.dynamic = true;
        
                 cam = makeCamera(scene);
                 renderer = makeRenderer(scene, cam.camera);
-                var axes = makeAxes(scene,false);
 
                 cubes = [];
                 [-1, 0, 1].forEach(function (x) {
                     [-1, 0, 1].forEach(function (y) {
                         [-1, 0, 1].forEach(function (z) {
-                            //if(!(x===y && x===z && x===0 )) return;
-                            var cube = makeCube(scene, axes, renderer, cube_outer_size, {x:x,y:y,z:z});
-                           
+                            
+                            // escape the middle cube
+                            if(x === y && y === z && z === 0) return;
+
+                            var cube = new Cube(scene, renderer, cube_outer_size, {x:x,y:y,z:z});
                             cubes.push(cube);
+
                         });
                     });
                 });
@@ -89,9 +88,6 @@
 
             }, 100);
 
-		    
-
-		    
 
         },false);
 
