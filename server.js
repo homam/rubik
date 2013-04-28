@@ -1,4 +1,4 @@
-﻿/// <reference path="views/public/scripts/libs/_.js" />
+/// <reference path="views/public/scripts/libs/_.js" />
 
 var express = require('express');
 if(typeof (_) == "undefined")
@@ -6,7 +6,7 @@ if(typeof (_) == "undefined")
 
 var port = process.env.PORT || parseInt(process.argv.pop());
 
-var app = express.createServer();
+var app = express()
 
 app.configure(function () {
     app.use(express.bodyParser());
@@ -39,5 +39,5 @@ app.get('/homam', function (req, res) {
 
 // how to read a file: fs.readFile('socket.client.js', 'utf-8', function (a, d) { res.end(d); })
 
-app.listen(port);;
+app.listen(port);
 
