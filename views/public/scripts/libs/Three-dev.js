@@ -23252,7 +23252,6 @@ THREE.TrackballControls = function ( object, domElement ) {
 	// listeners
 
 	function keydown( event ) {
-
 		if ( ! _this.enabled ) return;
 
 		if ( _state !== STATE.NONE ) {
@@ -23271,7 +23270,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 			_state = STATE.PAN;
 
-		}
+        }
 
 		if ( _state !== STATE.NONE ) {
 

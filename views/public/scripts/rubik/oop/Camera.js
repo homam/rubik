@@ -21,8 +21,8 @@ var makeCamera = function (scene) {
     var radious = cube_outer_size * 8,
         theta = 45,
         onMouseDownTheta = 45,
-        phi = 60,
-        onMouseDownPhi = 60;
+        phi = 45,
+        onMouseDownPhi = 45;
 
     var onMouseDownPosition = new THREE.Vector2();
 
@@ -84,9 +84,6 @@ var makeCamera = function (scene) {
                 onMouseDownPhi = phi;
                 onMouseDownPosition.x = clientX;
                 onMouseDownPosition.y = clientY;
-
-                // if (phi <= -90) // phi = -90;
-                // if (phi >= 90) phi = 90;
 
                 updatePosition();
             }

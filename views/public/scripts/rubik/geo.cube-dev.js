@@ -30,10 +30,16 @@ var makeCube = function (scene, axes, renderer, size) {
 
     var tickerEvent = renderer.tickerEvent;
 
+    var rotationPerTick = (Math.PI / 2) / config.anim.rotationSpeed; // const
+
     return {
         mesh: cube,
+        _rotationState: {
+            progress: 0,
+            axis: null
+        },
         rotate: function (axis, dir, callback) {
-            var rotationPerTick = (Math.PI / 2) / config.anim.rotationSpeed; // const
+
             var rotationAxis = axis;
             var rotationProgress = 0;
 
@@ -46,7 +52,8 @@ var makeCube = function (scene, axes, renderer, size) {
                     end = true;
                 }
 
-                var rotation_matrix = new THREE.Matrix4()['setRotation' + axis.toUpperCase()](rotationPerTick * dir); //https://github.com/mrdoob/three.js/issues/1219#issuecomment-3750958
+                var rotation_matrix =
+                    new THREE.Matrix4()['setRotation' + axis.toUpperCase()](rotationPerTick * dir); //https://github.com/mrdoob/three.js/issues/1219#issuecomment-3750958
                 rotation_matrix.multiplySelf(cube.matrix);
                 cube.rotation.getRotationFromMatrix(rotation_matrix);
                 cube.position.getPositionFromMatrix(rotation_matrix);

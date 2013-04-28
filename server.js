@@ -23,7 +23,7 @@ app.get('/', function (req, res) {
         release: "1" == req.query.release,
         isMobile: (function () {
             var mobileUAs = ['iphone', 'android', 'blackberry'];
-            var ua = req.headers['user-agent'];
+            var ua = !!req.query.ua ? req.query.ua : req.headers['user-agent'];
             if (!!ua) {
                 ua = ua.toLowerCase();
                 return _.any(mobileUAs, function (m) { return  ua.indexOf(m) > -1; });
@@ -32,10 +32,33 @@ app.get('/', function (req, res) {
         })()
     });
 });
+
+app.get('/oop', function (req, res) {
+    res.render('oop', {
+        layout: false,
+        release: "1" == req.query.release,
+        isMobile: (function () {
+            var mobileUAs = ['iphone', 'android', 'blackberry'];
+            var ua = !!req.query.ua ? req.query.ua : req.headers['user-agent'];
+            if (!!ua) {
+                ua = ua.toLowerCase();
+                return _.any(mobileUAs, function (m) { return ua.indexOf(m) > -1; });
+            }
+            return false;
+        })()
+    });
+});
+
+app.get("/test", function (req, res) {
+    res.render('texturetest.html', {
+        layout: false
+    });
+});
+
 app.get('/homam', function (req, res) {
     res.end('hhahah!');
 });
-
+ 
 
 // how to read a file: fs.readFile('socket.client.js', 'utf-8', function (a, d) { res.end(d); })
 
