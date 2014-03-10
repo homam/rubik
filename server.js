@@ -6,7 +6,7 @@ if(typeof (_) == "undefined")
 
 var port = process.env.PORT || parseInt(process.argv.pop());
 
-var app = express()
+var app = express.createServer()
 
 app.configure(function () {
     app.use(express.bodyParser());
